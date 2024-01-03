@@ -1,4 +1,5 @@
 import os
+import operator
 # Dicionário para unidades
 digitos = {
     'unidades': {
@@ -23,7 +24,7 @@ digitos = {
         'sessenta': 6,
         'setenta': 7,
         'oitenta': 8,
-        'noventa': 9
+        'noventa': 9,
     },
     'centenas': {
         'cento': 1,
@@ -36,107 +37,107 @@ digitos = {
         'oitocentos': 8,
         'novecentos': 9
     }}
+non_algarisms = ['milion', 'mil']
 
 
+operators = {'vezes': operator.add,
+             'menos': operator.sub,
+             'vezes': operator.mul,
+             'dividido por': operator.truediv}
 
 
-client_input = 'dois milhões novecentos e trinta e um mil duzentos e quinze'.strip().lower().replace('milhões', 'milion')
+operation = 'dois milhões duzentos e quinze vezes dois'
 
-def gen_frase_numerica(client_input):
-    if client_input.startswith('mil '):
-        return client_input.replace('mil','um')
-    return client_input
+def get_operation_elements(operation, operators):
+    for o in operators:
+        return operation.split(" {} ".format(o))
+    
+get_operation_elements = get_operation_elements(operation=operation, operators=operators)
 
-def check_teens (algarismo, teens_dict):
+def get_operator(operation, operators):
+    for o in operators:
+        if o in operation:
+            return operation[o]
+
+first_element = get_operation_elements[0]
+second_element = get_operation_elements[1]
+operator = get_operator(operation=operation, operators=operators)
+
+
+def check_teens (algarismo):
+    teens_dict = {
+    'onze': ['dez', 'um'],
+    'doze': ['dez', 'dois'],
+    'treze': ['dez', 'três'],
+    'catorze': ['dez', 'quatro'],
+    'quinze': ['dez', 'cinco'],
+    'dezesseis': ['dez', 'seis'],
+    'dezessete': ['dez', 'sete'],
+    'dezoito': ['dez', 'oito'],
+    'dezenove': ['dez', 'nove']
+}
+
     if algarismo in teens_dict:
-        return teens_dict[string]
+        return teens_dict[algarismo]
+    return algarismo
 
 
-frase_numerica = gen_frase_numerica(client_input=client_input)
+def gen_lista_numeros(client_input):
+    if client_input.startswith('mil '):
+        client_input = client_input.replace('mil','um mil')
+    clean_string = client_input.replace('milhões', 'milion').replace('milhão', 'milion').replace('e ', '').strip().lower()
+    lista = list(map(check_teens, clean_string.split(' ')))
+    lista_achatada = [item for sublist in lista for item in (sublist if isinstance(sublist, list) else [sublist])]
 
-def gen_string_list(frase_numerica):
-    frase_numerica.split(" ").
-    
-string_list = frase_numerica.split(" ")
-string = map(check_teens, string_list)
-string = string.split(" e ")
-milhar = [item.split('mil ') for item in string]
-milion = [item.split('milion ') for sublist in milhar for item in sublist]
-milion_trimmed = [item.split() for sublist in milion for item in sublist]
-list_string_numbers_raw = [valor for item in milion_trimmed for valor in item]
-
-list_lenght = len(list_string_numbers_raw)
-i = -3
-list_string_numbers_raw[i:]
+    return lista_achatada
 
 
-def translate_teens (string, teens_dict):
-    if string in teens_dict:
-        return teens_dict[string]
+def get_n_digits(lista_numeros):
+    if 'milion' in lista_numeros:
+        n_digits = 7 + (lista_numeros.index('milion') -1)
+    elif 'mil' in lista_numeros:
+        n_digits = 3 + (lista_numeros.index('mil') -1)
+    return n_digits
 
 
-def fill_zeros(list_string_numbers_raw, lenght):
-    for i in range(1, lenght):
-        list_string_numbers_raw.insert(0, 'zero')
-        i =+ 1
-    
+def get_list_algarisms(lista_numeros, non_algarisms):
+    return  [i for i in lista_numeros if i not in non_algarisms]
 
 
-def compose_list_numbers(list_string_numbers_raw):
-    
-    if list_lenght < 3: 
-        fill_zeros(list_string_numbers_raw, list_lenght)
-        return list_string_numbers_raw
-    
-    list.pop()
-    
-    
-
-#pegar lista list_string_numbers_raw 
-# dividir o lenght dela por 3
-    # se for 0.33
-# rodar compose_list_numbers e obter sublista com 3 itens.
-#remover os ultimos itens da lista original
-#o
+def get_n_algarisms(lista_numeros):
+    return sum(1 for i in lista_numeros if i not in non_algarisms)
 
 
-def get_last_3_numbers(list_string_numbers_raw, digitos):
-    l = []
-    unidade_str = list_string_numbers_raw[-1]
-    dezena_str = list_string_numbers_raw[-2]
-    centena_str = list_string_numbers_raw[-3]
-        
-    if unidade_str in digitos['unidades']:
-        unidade = digitos['unidades'][unidade_str]
-        if dezena_str in digitos['dezenas']:
-            dezena = digitos['dezenas'][dezena_str]
-        if dezena_str in digitos['centenas']:
-            dezena = 0
-            centena = digitos['centenas'][dezena_str]
-    elif unidade_str in digitos['dezenas']:
-        unidade = digitos['dezenas'][dezena_str]
-        dezena = 1
-    elif unidade_str in digitos['centenas']:
-        unidade = 0
-        dezena = 0
-        centena = digitos['centenas'][unidade_str]
-
-        
-    
-    # if unidade_str not in digitos['unidades']:
-    #     unidade = digitos['dezenas'][dezena_str]
-    #     dezena = 1
-       
-        
-    # if centena_str not in digitos['centenas']:
-    #     centena = 0
-    # if centena_str in digitos['centenas']:
-    #     centena = digitos['centenas'][centena_str]
-    
-    l.append(centena)
-    l.append(dezena)
-    l.append(unidade)
+def fill_zeros(n_digits, n_algarisms, list_algarisms):
+    l = [list_algarisms[0]]     
+    list_algarisms.remove(l[0])
+    n_zeros = n_digits - n_algarisms
+    for i in range (0, n_zeros):
+        l.append('zero')
+    for n in list_algarisms:
+        l.append(n)
     return l
 
 
-get_last_3_numbers(list_string_numbers_raw=list_string_numbers_raw, digitos=digitos)
+def gen_integer_list(zero_filled_list, digitos):
+    l = []
+    for number_name in zero_filled_list:
+        for grandeza in digitos:
+            if number_name in digitos[grandeza]:
+                l.append(digitos[grandeza][number_name])
+                break  # Para não buscar nas outras categorias depois de encontrar
+    return l
+
+def gen_integer_number (integer_list):
+   return int(''.join(map(str, integer_list)))
+
+if __name__ == "__main__":
+    
+    lista_numeros = gen_lista_numeros(client_input=client_input)
+    n_digits = get_n_digits(lista_numeros=lista_numeros)
+    list_algarisms = get_list_algarisms(lista_numeros=lista_numeros, non_algarisms=non_algarisms)
+    n_algarisms = get_n_algarisms(lista_numeros=lista_numeros)
+    zero_filled_list = fill_zeros(n_digits=n_digits, n_algarisms=n_algarisms, list_algarisms=list_algarisms)
+    integer_list = gen_integer_list(zero_filled_list=zero_filled_list, digitos=digitos)
+    integer_number = gen_integer_number(integer_list=integer_list)
+    print(integer_number)
